@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>googlecantdrive.uk — Project Report</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+
+/* ─── TOKENS ─────────────────────────────────────────── */
+:root {
+  --ink:       #0d0f12;
+  --ink2:      #131619;
+  --ink3:      #1a1e24;
+  --ink4:      #222830;
+  --line:      rgba(255,255,255,0.07);
+  --line2:     rgba(255,255,255,0.04);
+
+  --em:        #00e5a0;          /* teal-green accent */
+  --em-dim:    rgba(0,229,160,0.12);
+  --em-glow:   rgba(0,229,160,0.06);
+
+  --blue:      #5b9cf6;
+  --amber:     #f0a035;
+
+  --t1:        #f0f4f8;
+  --t2:        #8b949e;
+  --t3:        #484f58;
+
+  --mono:      'IBM Plex Mono', monospace;
+  --sans:      'Manrope', sans-serif;
+
+  --r:         6px;
+  --r2:        10px;
+}
+
+/* ─── RESET ──────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--ink);
+  color: var(--t1);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── NOISE TEXTURE OVERLAY ──────────────────────────── */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.4;
+}
+
+/* ─── LAYOUT ─────────────────────────────────────────── */
+.wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+/* ─── NAV ────────────────────────────────────────────── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(13,15,18,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--line);
+  padding: 0 32px;
+}
+
+.nav-inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-brand {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--t1);
+  text-decoration: none;
+  letter-spacing: -0.3px;
+}
+
+.nav-brand em { color: var(--em); font-style: normal; }
+
+.nav-links {
+  display: flex;
+  gap: 28px;
+  list-style: none;
+}
+
+.nav-links a {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--t2);
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover { color: var(--em); }
+
+.nav-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--em);
+  box-shadow: 0 0 8px var(--em);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.7); }
+}
+
+/* ─── HERO ───────────────────────────────────────────── */
+.hero {
+  padding: 100px 0 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle horizontal scan lines */
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(255,255,255,0.012) 2px,
+    rgba(255,255,255,0.012) 4px
+  );
+  pointer-events: none;
+}
+
+/* large faint bg text */
+.hero-bg-text {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-family: var(--mono);
+  font-size: clamp(80px, 18vw, 200px);
+  font-weight: 600;
+  color: rgba(255,255,255,0.018);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: -4px;
+}
+
+.hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+  animation: rise 0.7s ease both;
+}
+
+.chip {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 3px;
+}
+
+.chip-green {
+  color: var(--em);
+  background: var(--em-dim);
+  border: 1px solid rgba(0,229,160,0.25);
+}
+
+.chip-gray {
+  color: var(--t3);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--line);
+}
+
+.hero h1 {
+  font-family: var(--mono);
+  font-size: clamp(32px, 6vw, 58px);
+  font-weight: 600;
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+  margin-bottom: 20px;
+  animation: rise 0.7s 0.05s ease both;
+}
+
+.hero h1 .dim    { color: var(--t3); }
+.hero h1 .accent { color: var(--em); }
+
+.hero-desc {
+  max-width: 560px;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--t2);
+  line-height: 1.75;
+  margin-bottom: 36px;
+  animation: rise 0.7s 0.1s ease both;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  animation: rise 0.7s 0.15s ease both;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--em);
+  padding: 10px 20px;
+  border-radius: var(--r);
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  transition: opacity 0.2s, box-shadow 0.2s;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  box-shadow: 0 0 24px rgba(0,229,160,0.3);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--t2);
+  border: 1px solid var(--line);
+  background: transparent;
+  padding: 10px 20px;
+  border-radius: var(--r);
+  text-decoration: none;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.btn-ghost:hover { border-color: var(--em); color: var(--em); }
+
+/* ─── METRICS ROW ────────────────────────────────────── */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  overflow: hidden;
+  margin: 64px 0;
+  animation: rise 0.7s 0.2s ease both;
+}
+
+.metric {
+  padding: 28px 24px;
+  background: var(--ink2);
+  border-right: 1px solid var(--line);
+  position: relative;
+}
+
+.metric:last-child { border-right: none; }
+
+.metric::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--em), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.metric:hover::after { opacity: 1; }
+
+.metric-val {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--t1);
+  display: block;
+  letter-spacing: -1px;
+}
+
+.metric-val span { color: var(--em); }
+
+.metric-key {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--t3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 4px;
+  display: block;
+}
+
+/* ─── SECTION HEADERS ────────────────────────────────── */
+.sec-head {
+  margin-bottom: 40px;
+}
+
+.sec-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.sec-line {
+  width: 24px; height: 1px;
+  background: var(--em);
+}
+
+.sec-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--em);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--t1);
+}
+
+/* ─── OVERVIEW ───────────────────────────────────────── */
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  margin-bottom: 80px;
+}
+
+.overview-text {
+  background: var(--ink2);
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  padding: 32px;
+}
+
+.overview-text p {
+  color: var(--t2);
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.overview-text p + p { margin-top: 14px; }
+
+.overview-text strong { color: var(--t1); font-weight: 600; }
+
+.overview-text .hl {
+  color: var(--em);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.hw-card {
+  background: var(--ink2);
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hw-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--t3);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: block;
+}
+
+.hw-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line2);
+}
+
+.hw-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+.hw-k {
+  font-size: 12px;
+  color: var(--t3);
+}
+
+.hw-v {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--t1);
+  font-weight: 500;
+}
+
+.hw-v.good { color: var(--em); }
+
+/* ─── STEPS ──────────────────────────────────────────── */
+.steps-section { margin-bottom: 80px; }
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+/* vertical connector line */
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 19px;
+  top: 40px;
+  bottom: 40px;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--em), rgba(0,229,160,0.1));
+}
+
+.tl-item {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 20px;
+  padding: 8px 0;
+  opacity: 0;
+  transform: translateY(12px);
+  animation: rise 0.5s ease forwards;
+}
+
+.tl-item:nth-child(1) { animation-delay: 0.05s; }
+.tl-item:nth-child(2) { animation-delay: 0.1s; }
+.tl-item:nth-child(3) { animation-delay: 0.15s; }
+.tl-item:nth-child(4) { animation-delay: 0.2s; }
+.tl-item:nth-child(5) { animation-delay: 0.25s; }
+.tl-item:nth-child(6) { animation-delay: 0.3s; }
+.tl-item:nth-child(7) { animation-delay: 0.35s; }
+
+.tl-dot {
+  width: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 18px;
+}
+
+.tl-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--ink3);
+  border: 1px solid var(--em);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--em);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 0 12px var(--em-dim);
+}
+
+.tl-card {
+  background: var(--ink2);
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: border-color 0.25s;
+}
+
+.tl-card:hover { border-color: rgba(0,229,160,0.3); }
+
+.tl-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tl-card-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tl-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--t3);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--line);
+  padding: 3px 9px;
+  border-radius: 3px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.tl-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--t1);
+}
+
+.tl-chevron {
+  color: var(--t3);
+  font-size: 11px;
+  transition: transform 0.3s, color 0.2s;
+}
+
+.tl-card.open .tl-chevron { transform: rotate(180deg); color: var(--em); }
+
+.tl-body {
+  display: none;
+  padding: 0 24px 20px;
+  border-top: 1px solid var(--line2);
+  padding-top: 16px;
+}
+
+.tl-card.open .tl-body { display: block; }
+
+.tl-body p {
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.75;
+}
+
+.tl-body ul {
+  margin-top: 12px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tl-body ul li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.6;
+}
+
+.tl-body ul li::before {
+  content: '—';
+  color: var(--em);
+  font-family: var(--mono);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.tl-body ul li strong { color: var(--t1); font-weight: 600; }
+
+/* ─── ARCHITECTURE ───────────────────────────────────── */
+.arch-section { margin-bottom: 80px; }
+
+.arch-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.arch-terminal {
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  overflow: hidden;
+}
+
+.arch-terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: var(--ink3);
+  border-bottom: 1px solid var(--line);
+}
+
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot.red    { background: #ff5f56; }
+.dot.yellow { background: #ffbd2e; }
+.dot.green  { background: #27c93f; }
+
+.terminal-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--t3);
+  margin-left: auto;
+  margin-right: auto;
+  letter-spacing: 0.5px;
+}
+
+.arch-code {
+  padding: 24px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 2;
+}
+
+.c-dim    { color: var(--t3); }
+.c-em     { color: var(--em); font-weight: 600; }
+.c-blue   { color: var(--blue); }
+.c-amber  { color: var(--amber); }
+.c-text   { color: var(--t1); }
+.c-arrow  { color: rgba(0,229,160,0.4); display: block; padding-left: 24px; }
+.indent   { padding-left: 24px; display: block; }
+.indent2  { padding-left: 48px; display: block; }
+
+.arch-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.arch-detail-card {
+  background: var(--ink2);
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  padding: 18px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  transition: border-color 0.2s;
+}
+
+.arch-detail-card:hover { border-color: rgba(0,229,160,0.3); }
+
+.arch-icon {
+  width: 32px; height: 32px;
+  border-radius: var(--r);
+  background: var(--em-dim);
+  border: 1px solid rgba(0,229,160,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.arch-detail-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--t1);
+  margin-bottom: 3px;
+}
+
+.arch-detail-desc {
+  font-size: 12px;
+  color: var(--t3);
+  line-height: 1.5;
+}
+
+/* ─── CAPABILITIES ───────────────────────────────────── */
+.caps-section { margin-bottom: 80px; }
+
+.caps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.cap-card {
+  background: var(--ink2);
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  padding: 22px;
+  transition: border-color 0.2s, transform 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.cap-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top left, var(--em-glow), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.cap-card:hover { border-color: rgba(0,229,160,0.3); transform: translateY(-3px); }
+.cap-card:hover::before { opacity: 1; }
+
+.cap-icon {
+  font-size: 20px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.cap-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--t1);
+  margin-bottom: 6px;
+}
+
+.cap-desc {
+  font-size: 12px;
+  color: var(--t3);
+  line-height: 1.6;
+}
+
+/* ─── MAINTENANCE ────────────────────────────────────── */
+.maint-section { margin-bottom: 80px; }
+
+.maint-table {
+  background: var(--ink2);
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  overflow: hidden;
+}
+
+.maint-row {
+  display: grid;
+  grid-template-columns: 100px 180px 1fr;
+  align-items: start;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--line2);
+  gap: 20px;
+  transition: background 0.15s;
+}
+
+.maint-row:last-child { border-bottom: none; }
+.maint-row:hover { background: rgba(255,255,255,0.02); }
+
+.maint-row.header {
+  padding: 12px 24px;
+  background: var(--ink3);
+}
+
+.maint-row.header span {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--t3);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.maint-freq {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--em);
+  background: var(--em-dim);
+  border: 1px solid rgba(0,229,160,0.2);
+  padding: 3px 8px;
+  border-radius: 3px;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.maint-task {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--t1);
+}
+
+.maint-desc {
+  font-size: 12px;
+  color: var(--t3);
+  line-height: 1.6;
+}
+
+.maint-cmd {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--em);
+  background: rgba(0,0,0,0.3);
+  padding: 5px 10px;
+  border-radius: 4px;
+  margin-top: 6px;
+  border: 1px solid rgba(0,229,160,0.1);
+}
+
+/* ─── STACK ──────────────────────────────────────────── */
+.stack-section { margin-bottom: 80px; }
+
+.stack-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.stack-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--ink2);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 12px 18px;
+  transition: border-color 0.2s;
+}
+
+.stack-item:hover { border-color: rgba(0,229,160,0.3); }
+
+.stack-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--em);
+}
+
+.stack-name {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--t1);
+  font-weight: 500;
+}
+
+.stack-role {
+  font-size: 11px;
+  color: var(--t3);
+}
+
+/* ─── FOOTER ─────────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--line);
+  padding: 48px 0;
+}
+
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer-brand {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--t3);
+}
+
+.footer-brand span { color: var(--em); }
+
+.footer-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--t3);
+  text-align: right;
+  line-height: 1.8;
+}
+
+.footer-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--em);
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+/* ─── ANIMATIONS ─────────────────────────────────────── */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  .wrap { padding: 0 20px; }
+  .nav-links { display: none; }
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .overview-grid { grid-template-columns: 1fr; }
+  .arch-wrap { grid-template-columns: 1fr; }
+  .caps-grid { grid-template-columns: repeat(2, 1fr); }
+  .maint-row { grid-template-columns: 1fr; gap: 6px; }
+  .maint-row.header { display: none; }
+  .footer-inner { flex-direction: column; gap: 20px; text-align: center; }
+  .footer-status { justify-content: center; }
+}
+
+@media (max-width: 500px) {
+  .caps-grid { grid-template-columns: 1fr; }
+  .metrics { grid-template-columns: 1fr 1fr; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-brand" href="#">google<em>cant</em>drive.uk</a>
+    <ul class="nav-links">
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#build">Build</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#capabilities">Capabilities</a></li>
+    </ul>
+    <div class="nav-dot"></div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="wrap">
+  <section class="hero">
+    <div class="hero-bg-text">DRIVE</div>
+
+    <div class="hero-meta">
+      <span class="chip chip-green">Live</span>
+      <span class="chip chip-gray">Project Report</span>
+      <span class="chip chip-gray">2026</span>
+    </div>
+
+    <h1>
+      google<span class="dim">cant</span><span class="accent">drive</span>.uk<br>
+    </h1>
+
+    <p class="hero-desc">
+      A self-hosted, internet-accessible personal cloud storage server built on
+      repurposed consumer hardware. A full replacement for Google Drive —
+      privately owned, zero subscription, always on.
+    </p>
+
+    <div class="hero-actions">
+      <a class="btn-primary" href="https://googlecantdrive.uk" target="_blank">
+        ↗ Open Drive
+      </a>
+      <a class="btn-ghost" href="#build">
+        View Build Process
+      </a>
+    </div>
+  </section>
+
+  <!-- METRICS -->
+  <div class="metrics">
+    <div class="metric">
+      <span class="metric-val">7</span>
+      <span class="metric-key">Steps to Deploy</span>
+    </div>
+    <div class="metric">
+      <span class="metric-val">250<span>GB</span></span>
+      <span class="metric-key">Storage Capacity</span>
+    </div>
+    <div class="metric">
+      <span class="metric-val">~<span>€4</span></span>
+      <span class="metric-key">Monthly Power Cost</span>
+    </div>
+    <div class="metric">
+      <span class="metric-val">∞</span>
+      <span class="metric-key">User Accounts</span>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview" style="margin-bottom:80px;">
+    <div class="sec-head">
+      <div class="sec-eyebrow">
+        <div class="sec-line"></div>
+        <span class="sec-label">Overview</span>
+      </div>
+      <h2>What Was Built</h2>
+    </div>
+    <div class="overview-grid">
+      <div class="overview-text">
+        <p>
+          A fully functional personal cloud storage server — a self-hosted alternative to Google Drive —
+          running on an old <strong>i3 prebuilt desktop PC</strong>. Accessible from anywhere in the world
+          at <span class="hl">https://googlecantdrive.uk</span> with a real SSL certificate and no open router ports.
+        </p>
+        <p>
+          Multiple user accounts can be created with individual <strong>storage quotas</strong>.
+          Files sync automatically via official Nextcloud desktop and mobile apps on any platform —
+          Windows, Mac, Linux, iOS and Android.
+        </p>
+        <p>
+          The entire stack runs in <strong>Docker containers</strong>, making it trivial to update,
+          back up, and maintain. The server requires no monitor or keyboard — managed entirely
+          over SSH from a laptop.
+        </p>
+      </div>
+      <div class="hw-card">
+        <span class="hw-title">Hardware & Environment</span>
+        <div class="hw-row">
+          <span class="hw-k">CPU</span>
+          <span class="hw-v">Intel i3 (old prebuilt)</span>
+        </div>
+        <div class="hw-row">
+          <span class="hw-k">RAM</span>
+          <span class="hw-v">8 GB DDR3</span>
+        </div>
+        <div class="hw-row">
+          <span class="hw-k">Storage</span>
+          <span class="hw-v">250 GB HDD</span>
+        </div>
+        <div class="hw-row">
+          <span class="hw-k">OS</span>
+          <span class="hw-v">Ubuntu Server 24.04</span>
+        </div>
+        <div class="hw-row">
+          <span class="hw-k">Local IP</span>
+          <span class="hw-v good">192.168.1.89 (static)</span>
+        </div>
+        <div class="hw-row">
+          <span class="hw-k">Public URL</span>
+          <span class="hw-v good">googlecantdrive.uk</span>
+        </div>
+        <div class="hw-row">
+          <span class="hw-k">Status</span>
+          <span class="hw-v good">● Online</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BUILD STEPS -->
+  <section id="build" class="steps-section">
+    <div class="sec-head">
+      <div class="sec-eyebrow">
+        <div class="sec-line"></div>
+        <span class="sec-label">Build Process</span>
+      </div>
+      <h2>How It Was Done</h2>
+    </div>
+
+    <div class="timeline">
+
+      <div class="tl-item">
+        <div class="tl-dot"><div class="tl-num">01</div></div>
+        <div class="tl-card open">
+          <div class="tl-card-head" onclick="toggle(this)">
+            <div class="tl-card-left">
+              <span class="tl-tag">OS</span>
+              <span class="tl-title">Ubuntu Server</span>
+            </div>
+            <span class="tl-chevron">▼</span>
+          </div>
+          <div class="tl-body">
+            <p>Ubuntu Server was installed as the operating system. Unlike the desktop edition it ships with no
+            graphical interface, leaving maximum resources for Docker and Nextcloud. It is purpose-built
+            for always-on headless machines managed entirely over SSH — the ideal foundation for a home server.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"><div class="tl-num">02</div></div>
+        <div class="tl-card">
+          <div class="tl-card-head" onclick="toggle(this)">
+            <div class="tl-card-left">
+              <span class="tl-tag">Infrastructure</span>
+              <span class="tl-title">Docker & Docker Compose</span>
+            </div>
+            <span class="tl-chevron">▼</span>
+          </div>
+          <div class="tl-body">
+            <p>Docker was installed to run all services as isolated containers, eliminating dependency conflicts
+            and making updates and backups straightforward. Three containers were deployed via a single Compose file:</p>
+            <ul>
+              <li><strong>MariaDB</strong> — relational database storing all user data and file metadata</li>
+              <li><strong>Redis</strong> — in-memory cache providing file locking, preventing corruption under concurrent access</li>
+              <li><strong>Nextcloud</strong> — the cloud storage application itself</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"><div class="tl-num">03</div></div>
+        <div class="tl-card">
+          <div class="tl-card-head" onclick="toggle(this)">
+            <div class="tl-card-left">
+              <span class="tl-tag">Application</span>
+              <span class="tl-title">Nextcloud</span>
+            </div>
+            <span class="tl-chevron">▼</span>
+          </div>
+          <div class="tl-body">
+            <p>Nextcloud is a production-grade open-source Google Drive alternative. It was connected to MariaDB
+            for persistent data storage and Redis for performance. The admin account and database credentials
+            were configured via environment variables in Docker Compose on first launch, avoiding any manual setup wizard interaction.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"><div class="tl-num">04</div></div>
+        <div class="tl-card">
+          <div class="tl-card-head" onclick="toggle(this)">
+            <div class="tl-card-left">
+              <span class="tl-tag">Networking</span>
+              <span class="tl-title">Static IP Address</span>
+            </div>
+            <span class="tl-chevron">▼</span>
+          </div>
+          <div class="tl-body">
+            <p>The server was assigned a permanent local IP address of <strong>192.168.1.89</strong> using
+            Netplan — Ubuntu's network configuration system. Without a static assignment, the router's
+            DHCP server could assign a different IP on each reboot, silently breaking SSH access,
+            Nextcloud's trusted domain allowlist, and the Cloudflare tunnel configuration.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"><div class="tl-num">05</div></div>
+        <div class="tl-card">
+          <div class="tl-card-head" onclick="toggle(this)">
+            <div class="tl-card-left">
+              <span class="tl-tag">Remote Access</span>
+              <span class="tl-title">SSH Server</span>
+            </div>
+            <span class="tl-chevron">▼</span>
+          </div>
+          <div class="tl-body">
+            <p>OpenSSH Server was installed and enabled to start automatically at every boot via systemd.
+            This allows the entire server to be administered from a laptop over the local network —
+            no monitor, keyboard, or physical interaction ever required. The machine needs only power
+            and ethernet to operate indefinitely.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"><div class="tl-num">06</div></div>
+        <div class="tl-card">
+          <div class="tl-card-head" onclick="toggle(this)">
+            <div class="tl-card-left">
+              <span class="tl-tag">Hardening</span>
+              <span class="tl-title">Nextcloud Configuration</span>
+            </div>
+            <span class="tl-chevron">▼</span>
+          </div>
+          <div class="tl-body">
+            <p>Post-install configuration was applied via the <strong>occ</strong> CLI tool to clear all admin warnings and tune performance:</p>
+            <ul>
+              <li><strong>Trusted Domains</strong> — restricts access to known addresses only</li>
+              <li><strong>Maintenance Window</strong> — heavy background jobs scheduled for 2AM</li>
+              <li><strong>Mimetype Migrations</strong> — ensures correct file type handling</li>
+              <li><strong>Database Indexes</strong> — missing indexes added for faster queries</li>
+              <li><strong>Phone Region</strong> — set to GR for correct number formatting</li>
+              <li><strong>Protocol Override</strong> — forced to HTTPS after tunnel activation</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"><div class="tl-num">07</div></div>
+        <div class="tl-card">
+          <div class="tl-card-head" onclick="toggle(this)">
+            <div class="tl-card-left">
+              <span class="tl-tag">Internet Exposure</span>
+              <span class="tl-title">Cloudflare Tunnel</span>
+            </div>
+            <span class="tl-chevron">▼</span>
+          </div>
+          <div class="tl-body">
+            <p>A Cloudflare Tunnel exposes the server to the internet without opening any inbound ports on the
+            router. The <strong>cloudflared</strong> daemon maintains a persistent outbound encrypted connection
+            to Cloudflare's edge network. Cloudflare forwards requests arriving at
+            <strong>https://googlecantdrive.uk</strong> through that tunnel to Nextcloud on port 8080.
+            Free SSL/TLS termination is included. The daemon is registered as a systemd service,
+            ensuring it restarts automatically after every reboot or crash.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section id="architecture" class="arch-section">
+    <div class="sec-head">
+      <div class="sec-eyebrow">
+        <div class="sec-line"></div>
+        <span class="sec-label">System Design</span>
+      </div>
+      <h2>Architecture</h2>
+    </div>
+    <div class="arch-wrap">
+      <div class="arch-terminal">
+        <div class="arch-terminal-bar">
+          <div class="dot red"></div>
+          <div class="dot yellow"></div>
+          <div class="dot green"></div>
+          <span class="terminal-title">network topology</span>
+        </div>
+        <div class="arch-code">
+          <span class="c-dim">// request flow</span><br>
+          <br>
+          <span class="c-em">client browser</span><br>
+          <span class="c-arrow">↓  HTTPS</span>
+          <span class="c-em">googlecantdrive.uk</span><br>
+          <span class="c-arrow">↓  Cloudflare edge</span>
+          <span class="c-text">SSL termination</span><br>
+          <span class="c-arrow">↓  encrypted tunnel</span>
+          <span class="c-blue">cloudflared daemon</span><br>
+          <span class="c-arrow">↓  localhost:8080</span>
+          <span class="c-text">Ubuntu Server</span><br>
+          <span class="c-arrow">↓  Docker bridge</span>
+          <span class="c-amber">nextcloud container</span><br>
+          <span class="c-arrow">↓  internal network</span>
+          <span class="c-dim">mariadb + redis</span>
+        </div>
+      </div>
+
+      <div class="arch-details">
+        <div class="arch-detail-card">
+          <div class="arch-icon">☁️</div>
+          <div>
+            <div class="arch-detail-title">Cloudflare Edge</div>
+            <div class="arch-detail-desc">Handles SSL, DDoS protection, and global CDN. Zero router config required.</div>
+          </div>
+        </div>
+        <div class="arch-detail-card">
+          <div class="arch-icon">🔒</div>
+          <div>
+            <div class="arch-detail-title">Cloudflare Tunnel</div>
+            <div class="arch-detail-desc">Outbound-only encrypted connection. No open ports. No firewall changes.</div>
+          </div>
+        </div>
+        <div class="arch-detail-card">
+          <div class="arch-icon">🐳</div>
+          <div>
+            <div class="arch-detail-title">Docker Stack</div>
+            <div class="arch-detail-desc">Three isolated containers: Nextcloud, MariaDB, Redis. Managed via Compose.</div>
+          </div>
+        </div>
+        <div class="arch-detail-card">
+          <div class="arch-icon">🖥️</div>
+          <div>
+            <div class="arch-detail-title">Ubuntu Server</div>
+            <div class="arch-detail-desc">Headless OS. Static IP 192.168.1.89. Managed over SSH from laptop.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CAPABILITIES -->
+  <section id="capabilities" class="caps-section">
+    <div class="sec-head">
+      <div class="sec-eyebrow">
+        <div class="sec-line"></div>
+        <span class="sec-label">Features</span>
+      </div>
+      <h2>What It Can Do</h2>
+    </div>
+    <div class="caps-grid">
+      <div class="cap-card">
+        <span class="cap-icon">📁</span>
+        <div class="cap-title">File Storage & Sync</div>
+        <div class="cap-desc">Upload, download, and sync files from any device via browser or native apps.</div>
+      </div>
+      <div class="cap-card">
+        <span class="cap-icon">👥</span>
+        <div class="cap-title">Multi-User Accounts</div>
+        <div class="cap-desc">Unlimited accounts with individual storage quotas managed by admin.</div>
+      </div>
+      <div class="cap-card">
+        <span class="cap-icon">🔗</span>
+        <div class="cap-title">Secure File Sharing</div>
+        <div class="cap-desc">Share via links with optional passwords, expiry dates, and edit permissions.</div>
+      </div>
+      <div class="cap-card">
+        <span class="cap-icon">📱</span>
+        <div class="cap-title">Mobile Apps</div>
+        <div class="cap-desc">iOS and Android clients with background photo backup and sync.</div>
+      </div>
+      <div class="cap-card">
+        <span class="cap-icon">💻</span>
+        <div class="cap-title">Desktop Clients</div>
+        <div class="cap-desc">Native sync clients for Windows, macOS, and Linux.</div>
+      </div>
+      <div class="cap-card">
+        <span class="cap-icon">🔒</span>
+        <div class="cap-title">Encrypted in Transit</div>
+        <div class="cap-desc">All traffic secured via HTTPS through Cloudflare. No open router ports.</div>
+      </div>
+      <div class="cap-card">
+        <span class="cap-icon">🌍</span>
+        <div class="cap-title">Always Accessible</div>
+        <div class="cap-desc">Available 24/7 globally. Auto-recovers after power cuts via systemd.</div>
+      </div>
+      <div class="cap-card">
+        <span class="cap-icon">⚡</span>
+        <div class="cap-title">Low Running Cost</div>
+        <div class="cap-desc">Idle i3 consumes ~20–40W. Approximately €3–5/month in electricity.</div>
+      </div>
+      <div class="cap-card">
+        <span class="cap-icon">🔧</span>
+        <div class="cap-title">Fully Maintainable</div>
+        <div class="cap-desc">Updates, monitoring, and management entirely via SSH. No physical access needed.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAINTENANCE -->
+  <section class="maint-section">
+    <div class="sec-head">
+      <div class="sec-eyebrow">
+        <div class="sec-line"></div>
+        <span class="sec-label">Operations</span>
+      </div>
+      <h2>Maintenance Schedule</h2>
+    </div>
+    <div class="maint-table">
+      <div class="maint-row header">
+        <span>Frequency</span>
+        <span>Task</span>
+        <span>Notes</span>
+      </div>
+      <div class="maint-row">
+        <span class="maint-freq">Automatic</span>
+        <span class="maint-task">Background Jobs</span>
+        <span class="maint-desc">Nextcloud runs indexing, notifications, and cleanup daily at 2AM with zero intervention.</span>
+      </div>
+      <div class="maint-row">
+        <span class="maint-freq">Monthly</span>
+        <span class="maint-task">System Updates</span>
+        <span class="maint-desc">Apply Ubuntu security patches and pull updated Docker images.
+          <code class="maint-cmd">sudo apt update && sudo apt upgrade -y</code>
+          <code class="maint-cmd">cd ~/nextcloud && docker compose pull && docker compose up -d</code>
+        </span>
+      </div>
+      <div class="maint-row">
+        <span class="maint-freq">Monthly</span>
+        <span class="maint-task">Disk Check</span>
+        <span class="maint-desc">Keep usage below 80% (~200GB) for stable operation.
+          <code class="maint-cmd">df -h | grep -v tmpfs</code>
+        </span>
+      </div>
+      <div class="maint-row">
+        <span class="maint-freq">Every 3–6 mo</span>
+        <span class="maint-task">Physical Clean</span>
+        <span class="maint-desc">Remove dust from PC internals with compressed air. Verify airflow is unobstructed.</span>
+      </div>
+      <div class="maint-row">
+        <span class="maint-freq">As needed</span>
+        <span class="maint-task">Health Check</span>
+        <span class="maint-desc">Verify containers and tunnel are running after unexpected reboots.
+          <code class="maint-cmd">docker compose ps && sudo systemctl status cloudflared</code>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- STACK -->
+  <section class="stack-section">
+    <div class="sec-head">
+      <div class="sec-eyebrow">
+        <div class="sec-line"></div>
+        <span class="sec-label">Technology</span>
+      </div>
+      <h2>Stack</h2>
+    </div>
+    <div class="stack-row">
+      <div class="stack-item">
+        <div class="stack-dot"></div>
+        <span class="stack-name">Ubuntu Server 24.04</span>
+        <span class="stack-role">OS</span>
+      </div>
+      <div class="stack-item">
+        <div class="stack-dot"></div>
+        <span class="stack-name">Docker + Compose</span>
+        <span class="stack-role">Containers</span>
+      </div>
+      <div class="stack-item">
+        <div class="stack-dot"></div>
+        <span class="stack-name">Nextcloud</span>
+        <span class="stack-role">Application</span>
+      </div>
+      <div class="stack-item">
+        <div class="stack-dot"></div>
+        <span class="stack-name">MariaDB 11</span>
+        <span class="stack-role">Database</span>
+      </div>
+      <div class="stack-item">
+        <div class="stack-dot"></div>
+        <span class="stack-name">Redis</span>
+        <span class="stack-role">Cache</span>
+      </div>
+      <div class="stack-item">
+        <div class="stack-dot"></div>
+        <span class="stack-name">Cloudflare Tunnel</span>
+        <span class="stack-role">Networking</span>
+      </div>
+      <div class="stack-item">
+        <div class="stack-dot"></div>
+        <span class="stack-name">OpenSSH</span>
+        <span class="stack-role">Remote Access</span>
+      </div>
+      <div class="stack-item">
+        <div class="stack-dot"></div>
+        <span class="stack-name">Netplan</span>
+        <span class="stack-role">Network Config</span>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        google<span>cant</span>drive.uk &nbsp;·&nbsp; built by manos
+      </div>
+      <div class="footer-meta">
+        <div class="footer-status">
+          <div class="nav-dot"></div>
+          All systems operational
+        </div>
+        cloudy &nbsp;·&nbsp; 192.168.1.89 &nbsp;·&nbsp; 2026
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function toggle(header) {
+    const card = header.closest('.tl-card');
+    card.classList.toggle('open');
+  }
+</script>
+
+</body>
+</html>
